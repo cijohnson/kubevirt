@@ -32,8 +32,6 @@ import (
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 )
 
-const primaryPodInterfaceName = "eth0"
-
 var vifCacheFile = "/proc/%s/root/var/run/kubevirt-private/vif-cache-%s.json"
 var podNICFactory = newpodNIC
 
@@ -84,15 +82,6 @@ func invokePodNICFactory(networks map[string]*v1.Network, ifaceName string) (pod
 	return podNICFactory(network)
 }
 
-func getPodInterfaceName(networks map[string]*v1.Network, cniNetworks map[string]int, ifaceName string) string {
-	if networks[ifaceName].Multus != nil && !networks[ifaceName].Multus.Default {
-		// multus pod interfaces named netX
-		return fmt.Sprintf("net%d", cniNetworks[ifaceName])
-	} else {
-		return primaryPodInterfaceName
-	}
-}
-
 func SetupPodNetworkPhase1(vmi *v1.VirtualMachineInstance, pid int) error {
 	err := CreateVirtHandlerCacheDir(vmi.ObjectMeta.UID)
 	if err != nil {
@@ -104,7 +93,7 @@ func SetupPodNetworkPhase1(vmi *v1.VirtualMachineInstance, pid int) error {
 		if err != nil {
 			return err
 		}
-		podInterfaceName := getPodInterfaceName(networks, cniNetworks, iface.Name)
+		podInterfaceName := api.GetPodInterfaceName(networks, cniNetworks, iface.Name)
 		err = podNIC.PlugPhase1(podnic, vmi, &vmi.Spec.Domain.Devices.Interfaces[i], networks[iface.Name], podInterfaceName, pid)
 		if err != nil {
 			return err
@@ -120,7 +109,7 @@ func SetupPodNetworkPhase2(vmi *v1.VirtualMachineInstance, domain *api.Domain) e
 		if err != nil {
 			return err
 		}
-		podInterfaceName := getPodInterfaceName(networks, cniNetworks, iface.Name)
+		podInterfaceName := api.GetPodInterfaceName(networks, cniNetworks, iface.Name)
 		err = podNIC.PlugPhase2(podnic, vmi, &vmi.Spec.Domain.Devices.Interfaces[i], networks[iface.Name], domain, podInterfaceName)
 		if err != nil {
 			return err

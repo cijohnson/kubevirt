@@ -57,14 +57,15 @@ import (
 type HostDeviceType string
 
 const (
-	defaultIOThread                  = uint(1)
-	EFICode                          = "OVMF_CODE.fd"
-	EFIVars                          = "OVMF_VARS.fd"
-	EFICodeSecureBoot                = "OVMF_CODE.secboot.fd"
-	EFIVarsSecureBoot                = "OVMF_VARS.secboot.fd"
-	HostDevicePCI     HostDeviceType = "pci"
-	HostDeviceMDEV    HostDeviceType = "mdev"
-	resolvConf                       = "/etc/resolv.conf"
+	defaultIOThread                        = uint(1)
+	EFICode                                = "OVMF_CODE.fd"
+	EFIVars                                = "OVMF_VARS.fd"
+	EFICodeSecureBoot                      = "OVMF_CODE.secboot.fd"
+	EFIVarsSecureBoot                      = "OVMF_VARS.secboot.fd"
+	HostDevicePCI           HostDeviceType = "pci"
+	HostDeviceMDEV          HostDeviceType = "mdev"
+	resolvConf                             = "/etc/resolv.conf"
+	PrimaryPodInterfaceName                = "eth0"
 )
 const (
 	multiQueueMaxQueues = uint32(256)
@@ -1593,6 +1594,15 @@ func CheckEFI_OVMFRoms(vmi *v1.VirtualMachineInstance, c *ConverterContext) (err
 		}
 	}
 	return nil
+}
+
+func GetPodInterfaceName(networks map[string]*v1.Network, cniNetworks map[string]int, ifaceName string) string {
+	if networks[ifaceName].Multus != nil && !networks[ifaceName].Multus.Default {
+		// multus pod interfaces named netX
+		return fmt.Sprintf("net%d", cniNetworks[ifaceName])
+	} else {
+		return PrimaryPodInterfaceName
+	}
 }
 
 func getVirtualMemory(vmi *v1.VirtualMachineInstance) *resource.Quantity {
