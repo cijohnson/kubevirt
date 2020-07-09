@@ -69,3 +69,13 @@ func ResourceNameToEnvVar(prefix string, resourceName string) string {
 	varName = strings.Replace(varName, ".", "_", -1)
 	return fmt.Sprintf("%s_%s", prefix, varName)
 }
+
+// Check if a VMI spec requests vhostuser interface
+func IsVhostuserVmiSpec(spec *v1.VirtualMachineInstanceSpec) bool {
+	for _, iface := range spec.Domain.Devices.Interfaces {
+		if iface.Vhostuser != nil {
+			return true
+		}
+	}
+	return false
+}

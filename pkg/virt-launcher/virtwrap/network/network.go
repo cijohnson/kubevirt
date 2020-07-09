@@ -30,6 +30,7 @@ import (
 
 	v1 "kubevirt.io/client-go/api/v1"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/converter"
 )
 
 var vifCacheFile = "/proc/%s/root/var/run/kubevirt-private/vif-cache-%s.json"
@@ -93,7 +94,7 @@ func SetupPodNetworkPhase1(vmi *v1.VirtualMachineInstance, pid int) error {
 		if err != nil {
 			return err
 		}
-		podInterfaceName := api.GetPodInterfaceName(networks, cniNetworks, iface.Name)
+		podInterfaceName := converter.GetPodInterfaceName(networks, cniNetworks, iface.Name)
 		err = podNIC.PlugPhase1(podnic, vmi, &vmi.Spec.Domain.Devices.Interfaces[i], networks[iface.Name], podInterfaceName, pid)
 		if err != nil {
 			return err
@@ -109,7 +110,7 @@ func SetupPodNetworkPhase2(vmi *v1.VirtualMachineInstance, domain *api.Domain) e
 		if err != nil {
 			return err
 		}
-		podInterfaceName := api.GetPodInterfaceName(networks, cniNetworks, iface.Name)
+		podInterfaceName := converter.GetPodInterfaceName(networks, cniNetworks, iface.Name)
 		err = podNIC.PlugPhase2(podnic, vmi, &vmi.Spec.Domain.Devices.Interfaces[i], networks[iface.Name], domain, podInterfaceName)
 		if err != nil {
 			return err
